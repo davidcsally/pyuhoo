@@ -94,6 +94,13 @@ class Client(object):
                 + "\033[0m"
             )
             await self.login()
+        except RequestError:
+            self._log.debug(
+                "\033[91m"
+                + "[refresh_token] received api error (Invalid token), attempting to re-login"
+                + "\033[0m"
+            )
+            await self.login()
 
     async def get_latest_data(self) -> None:
         try:
@@ -114,6 +121,15 @@ class Client(object):
             )
             await self.refresh_token()
             data_latest = await self._api.data_latest()
+        except RequestError:
+            self._log.debug(
+                "\033[93m"
+                + "[get_latest_data] received api error, attempting to re-login and trying again"
+                + "\033[0m"
+            )
+            await self.refresh_token()
+            data_latest = await self._api.data_latest()
+
         # self._log.debug(f"[data_latest] returned\n{json_pp(data_latest)}")
 
         self.user_settings_temp = data_latest["userSettings"]["temp"]
