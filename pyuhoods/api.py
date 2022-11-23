@@ -14,12 +14,14 @@ from .endpoints import (
     APP_MUST_UPDATE,
     AUTH_URL_SCAFFOLD,
     DATA_HOUR,
+    DATA_CONSUMER,
     DATA_LATEST,
     DEVICE_DATA,
     USER_CONFIG,
     USER_LOGIN,
     USER_REFRESH_TOKEN,
     USER_VERIFY_EMAIL,
+    GET_MINUTE_DATA,
 )
 from .errors import ForbiddenError, RequestError, UnauthorizedError
 from .util import json_pp
@@ -138,6 +140,10 @@ class API(object):
 
     async def data_latest(self) -> dict:
         resp: dict = await self._request("get", API_URL_SCAFFOLD, DATA_LATEST)
+        return resp
+
+    async def data_consumer(self) -> dict:
+        resp: dict = await self._request("get", API_URL_SCAFFOLD, DATA_CONSUMER)
         return resp
 
     async def data_hour(self, serial_number: str, prev_date_time: str) -> dict:

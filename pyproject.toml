@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "pyuhoods"
-version = "0.0.6"
+version = "0.0.7"
 description = "Python API for talking to uHoo consumer API"
-authors = ["Christopher Sacca <csacca@csacca.net>"]
-repository = "https://github.com/csacca/pyuhoo"
+authors = ["David Sally <davidcsally@github-noreply.com>"]
+repository = "https://github.com/davidcsally/pyuhoo"
 license = "MIT"
 readme = "README.md"
 
