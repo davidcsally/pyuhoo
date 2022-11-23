@@ -19,7 +19,6 @@ from .endpoints import (
     DEVICE_DATA,
     USER_CONFIG,
     USER_LOGIN,
-    USER_REFRESH_TOKEN,
     USER_VERIFY_EMAIL,
     GET_MINUTE_DATA,
 )
@@ -125,22 +124,6 @@ class API(object):
             AUTH_URL_SCAFFOLD,
             USER_LOGIN,
             data={"username": username, "password": password, "clientId": client_id},
-        )
-        return resp
-
-    async def user_refresh_token(self, token, user_device_id) -> dict:
-        """Note: user_device_id is the same as client_id"""
-        await self._request(
-            "options",
-            AUTH_URL_SCAFFOLD,
-            USER_REFRESH_TOKEN,
-        )
-
-        resp: dict = await self._request(
-            "post",
-            AUTH_URL_SCAFFOLD,
-            USER_REFRESH_TOKEN,
-            data={"Token": token, "userDeviceId": user_device_id},
         )
         return resp
 

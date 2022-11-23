@@ -17,13 +17,8 @@ class Client(object):
     ) -> None:
         self._log: logging.Logger = logging.getLogger("pyuhoo")
 
-        if kwargs.get("debug") is True:
-            self._log.setLevel(logging.DEBUG)
-            self._log.debug("Debug mode is explicitly enabled.")
-        else:
-            self._log.debug(
-                "Debug mode is not explicitly enabled (but may be enabled elsewhere)."
-            )
+        self._log.setLevel(logging.DEBUG)
+        self._log.debug("Debug mode is explicitly enabled.")
 
         self._app_version: int = APP_VERSION
         self._client_id: str = CLIENT_ID
@@ -69,57 +64,24 @@ class Client(object):
         self._refresh_token = user_login["refreshToken"]
         self._api.set_bearer_token(self._refresh_token)
 
-    async def refresh_token(self) -> None:
-        """FIXME: user_refresh_token doesn't seem to work once token is expired..."""
-        if self._token is None:
-            raise UhooError("Error cannot refresh token prior to logging in")
-
-        try:
-            user_refresh_token: dict = await self._api.user_refresh_token(
-                self._token, self._device_id
-            )
-
-            self._log.debug(
-                f"[user_refresh_token] returned\n{json_pp(user_refresh_token)}"
-            )
-
-            self._token = user_refresh_token["token"]
-            self._refresh_token = user_refresh_token["refreshToken"]
-            self._api.set_bearer_token(self._refresh_token)
-
-        except UnauthorizedError:
-            self._log.debug(
-                "\033[91m"
-                + "[refresh_token] received 401 error (Invalid token), attempting to re-login"
-                + "\033[0m"
-            )
-            await self.login()
-        except RequestError:
-            self._log.debug(
-                "\033[91m"
-                + "[refresh_token] received api error (Invalid token), attempting to re-login"
-                + "\033[0m"
-            )
-            await self.login()
-
     async def get_latest_data(self) -> None:
         try:
-            data_latest: dict = await self._api.data_consumer()
+            data_latest: dict = await self._api.data_latest()
         except UnauthorizedError:
             self._log.debug(
                 "\033[93m"
                 + "[get_latest_data] received 401 error, attempting to re-login and trying again
                 + "\033[0m"
             )
-            await self.refresh_token()
-            data_latest = await self._api.data_consumer()
+            await self.login()
+            data_latest = await self._api.data_latest()
         except ForbiddenError:
             self._log.debug(
                 "\033[93m"
                 + "[get_latest_data] received 403 error, attempting to re-login and trying again"
                 + "\033[0m"
             )
-            await self.refresh_token()
+            await self.login()
             data_latest = await self._api.data_latest()
         except RequestError:
             self._log.debug(
@@ -127,7 +89,7 @@ class Client(object):
                 + "[get_latest_data] received api error, attempting to re-login and trying again"
                 + "\033[0m"
             )
-            await self.refresh_token()
+            await self.login()
             data_latest = await self._api.data_latest()
 
         # self._log.debug(f"[data_latest] returned\n{json_pp(data_latest)}")
