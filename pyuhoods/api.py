@@ -130,6 +130,12 @@ class API(object):
 
     async def user_refresh_token(self, token, user_device_id) -> dict:
         """Note: user_device_id is the same as client_id"""
+        await self._request(
+            "options",
+            AUTH_URL_SCAFFOLD,
+            USER_REFRESH_TOKEN,
+        )
+
         resp: dict = await self._request(
             "post",
             AUTH_URL_SCAFFOLD,
