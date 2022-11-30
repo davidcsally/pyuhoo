@@ -86,7 +86,7 @@ class Client(object):
 
             self._token = user_refresh_token["token"]
             self._refresh_token = user_refresh_token["refreshToken"]
-            self._api.set_bearer_token(self._refresh_token)
+            # self._api.set_bearer_token(self._refresh_token)
 
         except UnauthorizedError:
             self._log.debug(
