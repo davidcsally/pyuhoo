@@ -47,7 +47,7 @@ class API(object):
     ):
         headers = {}
         if self._bearer_token:
-            headers.update({AUTHORIZATION: f"Bearer {self._bearer_token}"})
+            headers.update({"authorization": f"Bearer {self._bearer_token}"})
         if self._user_agent:
             headers.update({USER_AGENT: self._user_agent})
 
@@ -138,6 +138,10 @@ class API(object):
 
     async def data_latest(self) -> dict:
         resp: dict = await self._request("get", API_URL_SCAFFOLD, DATA_LATEST)
+        return resp
+
+    async def data_latest_aqi(self) -> dict:
+        resp: dict = await self._request("get", API_URL_SCAFFOLD, "getalllatestaqitimestamp")
         return resp
 
     async def data_hour(self, serial_number: str, prev_date_time: str) -> dict:

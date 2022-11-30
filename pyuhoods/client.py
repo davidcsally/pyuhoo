@@ -86,7 +86,7 @@ class Client(object):
 
             self._token = user_refresh_token["token"]
             self._refresh_token = user_refresh_token["refreshToken"]
-            # self._api.set_bearer_token(self._refresh_token)
+            self._api.set_bearer_token(self._refresh_token)
 
         except UnauthorizedError:
             self._log.debug(
@@ -98,7 +98,7 @@ class Client(object):
 
     async def get_latest_data(self) -> None:
         try:
-            data_latest: dict = await self._api.data_latest()
+            data_latest: dict = await self._api.data_latest_aqi()
         except UnauthorizedError:
             self._log.debug(
                 "\033[93m"
@@ -106,7 +106,7 @@ class Client(object):
                 + "\033[0m"
             )
             await self.refresh_token()
-            data_latest = await self._api.data_latest()
+            data_latest = await self._api.data_latest_aqi()
         except ForbiddenError:
             self._log.debug(
                 "\033[93m"
@@ -114,7 +114,7 @@ class Client(object):
                 + "\033[0m"
             )
             await self.refresh_token()
-            data_latest = await self._api.data_latest()
+            data_latest = await self._api.data_latest_aqi()
 
         # self._log.debug(f"[data_latest] returned\n{json_pp(data_latest)}")
 
