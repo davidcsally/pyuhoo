@@ -1,4 +1,5 @@
 import logging
+import uuid
 from typing import Dict, Optional
 
 from aiohttp import ClientSession
@@ -6,7 +7,7 @@ from aiohttp import ClientSession
 from pyuhoo.errors import ForbiddenError, UhooError, UnauthorizedError
 
 from .api import API
-from .consts import APP_VERSION, CLIENT_ID
+from .consts import APP_VERSION
 from .device import Device
 from .util import encrypted_hash, json_pp, salted_hash
 
@@ -17,11 +18,16 @@ class Client(object):
     ) -> None:
         self._log: logging.Logger = logging.getLogger("pyuhoo")
 
-        self._log.setLevel(logging.DEBUG)
-        self._log.debug("Debug mode is explicitly enabled.")
+        if kwargs.get("debug") is True:
+            self._log.setLevel(logging.DEBUG)
+            self._log.debug("Debug mode is explicitly enabled.")
+        else:
+            self._log.debug(
+                "Debug mode is not explicitly enabled (but may be enabled elsewhere)."
+            )
 
         self._app_version: int = APP_VERSION
-        self._client_id: str = CLIENT_ID
+        self._client_id: str = (uuid.uuid1().hex * 2)[0:48]
         self._device_id: Optional[str] = None
         self._devices: Dict[str, Device] = {}
         self._username: str = username
@@ -64,32 +70,50 @@ class Client(object):
         self._refresh_token = user_login["refreshToken"]
         self._api.set_bearer_token(self._refresh_token)
 
+    async def refresh_token(self) -> None:
+        """FIXME: user_refresh_token doesn't seem to work once token is expired..."""
+        if self._token is None:
+            raise UhooError("Error cannot refresh token prior to logging in")
+
+        try:
+            user_refresh_token: dict = await self._api.user_refresh_token(
+                self._token, self._device_id
+            )
+
+            self._log.debug(
+                f"[user_refresh_token] returned\n{json_pp(user_refresh_token)}"
+            )
+
+            self._token = user_refresh_token["token"]
+            self._refresh_token = user_refresh_token["refreshToken"]
+            self._api.set_bearer_token(self._refresh_token)
+
+        except UnauthorizedError:
+            self._log.debug(
+                "\033[91m"
+                + "[refresh_token] received 401 error, attempting to re-login"
+                + "\033[0m"
+            )
+            await self.login()
+
     async def get_latest_data(self) -> None:
         try:
             data_latest: dict = await self._api.data_latest()
         except UnauthorizedError:
             self._log.debug(
                 "\033[93m"
-                + "[get_latest_data] received 401 error, attempting to re-login and trying again
+                + "[get_latest_data] received 401 error, refreshing token and trying again"
                 + "\033[0m"
             )
-            await self.login()
+            await self.refresh_token()
             data_latest = await self._api.data_latest()
         except ForbiddenError:
             self._log.debug(
                 "\033[93m"
-                + "[get_latest_data] received 403 error, attempting to re-login and trying again"
+                + "[get_latest_data] received 403 error, refreshing token and trying again"
                 + "\033[0m"
             )
-            await self.login()
-            data_latest = await self._api.data_latest()
-        except RequestError:
-            self._log.debug(
-                "\033[93m"
-                + "[get_latest_data] received api error, attempting to re-login and trying again"
-                + "\033[0m"
-            )
-            await self.login()
+            await self.refresh_token()
             data_latest = await self._api.data_latest()
 
         # self._log.debug(f"[data_latest] returned\n{json_pp(data_latest)}")
@@ -100,7 +124,13 @@ class Client(object):
         for device in data_latest["devices"]:
             serial_number: str = device["serialNumber"]
             if serial_number not in self._devices:
-                self._devices[serial_number].update_data(device["data"])
+                self._devices[serial_number] = Device(device)
+
+        for data in data_latest["data"]:
+            serial_number = data["serialNumber"]
+            device_obj: Device = self._devices[serial_number]
+            if device_obj.timestamp < data["timestamp"]:
+                device_obj.update_data(data)
 
     def get_device(self, serial_number) -> Optional[Device]:
         if serial_number in self._devices:

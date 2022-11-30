@@ -14,13 +14,12 @@ from .endpoints import (
     APP_MUST_UPDATE,
     AUTH_URL_SCAFFOLD,
     DATA_HOUR,
-    DATA_CONSUMER,
     DATA_LATEST,
     DEVICE_DATA,
     USER_CONFIG,
     USER_LOGIN,
+    USER_REFRESH_TOKEN,
     USER_VERIFY_EMAIL,
-    GET_MINUTE_DATA,
 )
 from .errors import ForbiddenError, RequestError, UnauthorizedError
 from .util import json_pp
@@ -127,12 +126,18 @@ class API(object):
         )
         return resp
 
-    async def data_latest(self) -> dict:
-        resp: dict = await self._request("get", API_URL_SCAFFOLD, DATA_LATEST)
+    async def user_refresh_token(self, token, user_device_id) -> dict:
+        """Note: user_device_id is the same as client_id"""
+        resp: dict = await self._request(
+            "post",
+            AUTH_URL_SCAFFOLD,
+            USER_REFRESH_TOKEN,
+            data={"Token": token, "userDeviceId": user_device_id},
+        )
         return resp
 
-    async def data_consumer(self) -> dict:
-        resp: dict = await self._request("get", API_URL_SCAFFOLD, DATA_CONSUMER)
+    async def data_latest(self) -> dict:
+        resp: dict = await self._request("get", API_URL_SCAFFOLD, DATA_LATEST)
         return resp
 
     async def data_hour(self, serial_number: str, prev_date_time: str) -> dict:
