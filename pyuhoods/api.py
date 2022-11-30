@@ -49,7 +49,7 @@ class API(object):
         if self._bearer_token:
             headers.update({"authorization": f"Bearer {self._bearer_token}"})
         if self._user_agent:
-            headers.update({USER_AGENT: self._user_agent})
+            headers.update({"user-agent": self._user_agent})
 
         self._log.debug(f"[_request] {method} {scaffold}/{endpoint}")
 
