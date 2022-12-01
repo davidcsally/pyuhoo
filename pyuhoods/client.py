@@ -31,7 +31,7 @@ class Client(object):
 
         self._app_version: int = APP_VERSION
         self._client_id: str = "131c418e3683b533bed4e258c28322dcc689956d2e90d39f"
-        self._device_id: Optional[str] = None
+        self._device_id: str = "131c418e3683b533bed4e258c28322dcc689956d2e90d39f"
         self._devices: Dict[str, Device] = {}
         self._username: str = username
         self._password: str = password
@@ -68,7 +68,7 @@ class Client(object):
         user_login: dict = await self._api.user_login(self._username, encrypted, id)
         self._log.debug(f"[user_login] returned\n{json_pp(user_login)}")
 
-        self._device_id = user_login["deviceId"]
+        # self._device_id = user_login["deviceId"]
         self._token = user_login["token"]
         self._refresh_token = user_login["refreshToken"]
         self._api.set_bearer_token(self._refresh_token)
