@@ -1,5 +1,4 @@
 import logging
-import uuid
 from typing import Dict, Optional
 
 from aiohttp import ClientSession
@@ -10,6 +9,10 @@ from .api import API
 from .consts import APP_VERSION
 from .device import Device
 from .util import encrypted_hash, json_pp, salted_hash
+
+# client ids:
+# 131c418e3683b533bed4e258c28322dcc689956d2e90d39f
+# fa553edd0b031b3911f64741036491e823ca109262a0ab3e
 
 
 class Client(object):
@@ -27,7 +30,7 @@ class Client(object):
             )
 
         self._app_version: int = APP_VERSION
-        self._client_id: str = (uuid.uuid1().hex * 2)[0:48]
+        self._client_id: str = "131c418e3683b533bed4e258c28322dcc689956d2e90d39f"
         self._device_id: Optional[str] = None
         self._devices: Dict[str, Device] = {}
         self._username: str = username
